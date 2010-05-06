@@ -64,7 +64,27 @@ class FantasyFootball
     end
     
     def getPlayerDetails(playerId)
+        results = Array.new
+        doc = parseXML("ffnPlayerDetailsXML.php", "&playerId=" + playerId)
         
+        playerDetails = {
+            "firstName" => (doc/"firstname").inner_html,
+            "lastName"  => (doc/"lastname").inner_html,
+            "team"      => (doc/"team").inner_html,
+            "position"  => (doc/"position").inner_html    
+        }
+        results << playerDetails
+        
+        (doc/"article").each do |article|
+            curr = { 
+                "title"     => (article/"title").inner_html,
+                "source"    => (article/"source").inner_html,
+                "published" => (article/"published").inner_html
+            }
+            results << curr
+        end
+        
+        return results
     end
     
     def getDraftRankings(position, limit, sos)
