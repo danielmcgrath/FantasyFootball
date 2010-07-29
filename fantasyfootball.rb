@@ -15,7 +15,7 @@ class FantasyFootball
 
     def getSchedule
         results = Array.new
-        doc = parseXML("ffnScheduleXML.php")
+        doc = parseXML("ffnScheduleXML.php", "")
         
         (doc/"game").each do |game|
             curr = { 
@@ -60,7 +60,19 @@ class FantasyFootball
     end
     
     def getAllPlayers
+        players = Array.new
+        doc = parseXML("ffnPlayersXML.php", "")
         
+        (doc/"player").each do |p|
+            player = {
+                "name" => p['name'],
+                "position" => p['position'],
+                "team" => p['team'],
+                "playerID" => p['playerid']
+            }
+            players << player
+        end
+        return players
     end
     
     def getPlayerDetails(playerId)
