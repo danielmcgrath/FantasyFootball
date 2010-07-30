@@ -8,9 +8,9 @@ class FantasyFootball
     end
     
     def parseXML(action, params)
-        load = @url + action + @api_key + params
-        xml = open(load).read()
-        return Hpricot(xml)
+        path = @url + action + @api_key + params
+        resp = open(path).read()
+        return Hpricot(resp)
     end
 
     def getSchedule
@@ -26,14 +26,15 @@ class FantasyFootball
                 "hometeam" => game.attributes['hometeam'],
                 "gametime" => game.attributes['gametime']
             }
+            
             results << curr
         end
         
         return results
     end
     
-    # TODO: getProjection doesn't seem to actually return position
-    # projections. Bad API call or bad API?
+    # I believe this suffers the same problem as getInjuries, since the season is 
+    # not yet underway. Sample data for this would be amazing.
     def getProjection(week, position)
         results = Array.new
         doc = parseXML("ffnSitStartXML.php", "&week=" + week + "&position=" + position)
@@ -44,7 +45,7 @@ class FantasyFootball
         results = Array.new
         doc = parseXML("ffnInjuriesXML.php", "&week=" + week)
         if doc/"error" 
-            puts (doc/"error").inner_html
+            return (doc/"error").inner_html
         else
             (doc/"injury").each do |injury|
                 curr = {
@@ -52,6 +53,7 @@ class FantasyFootball
                     # injury report, I'm not sure what the data format for
                     # this is. Hopefully I can find a sample somewhere
                 }
+                
                 results << curr
             end
         end
@@ -65,13 +67,15 @@ class FantasyFootball
         
         (doc/"player").each do |p|
             player = {
-                "name" => p['name'],
+                "name"     => p['name'],
                 "position" => p['position'],
-                "team" => p['team'],
+                "team"     => p['team'],
                 "playerID" => p['playerid']
             }
+            
             players << player
         end
+        
         return players
     end
     
@@ -85,6 +89,7 @@ class FantasyFootball
             "team"      => (doc/"team").inner_html,
             "position"  => (doc/"position").inner_html    
         }
+        
         results << playerDetails
         
         (doc/"article").each do |article|
@@ -93,6 +98,7 @@ class FantasyFootball
                 "source"    => (article/"source").inner_html,
                 "published" => (article/"published").inner_html
             }
+            
             results << curr
         end
         
@@ -113,6 +119,7 @@ class FantasyFootball
                "team"         => player.attributes['team'],
                "playerid"     => player.attributes['playerid']
            }
+           
            results << curr
        end
        
