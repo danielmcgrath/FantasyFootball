@@ -8,7 +8,7 @@ class FantasyFootball
     end
     
     def parseXML(action, params)
-        path = @url + action + @api_key + params
+        path = @url + action + @api_key + (params unless params.nil?)
         resp = open(path).read()
         return Hpricot(resp)
     end
@@ -18,7 +18,7 @@ class FantasyFootball
         doc = parseXML("ffnScheduleXML.php", "")
         
         (doc/"game").each do |game|
-            curr = { 
+            results << { 
                 "gameId"   => game.attributes['gameid'],
                 "week"     => game.attributes['week'],
                 "gameDate" => game.attributes['gamedate'],
@@ -26,8 +26,6 @@ class FantasyFootball
                 "hometeam" => game.attributes['hometeam'],
                 "gametime" => game.attributes['gametime']
             }
-            
-            results << curr
         end
         
         return results
@@ -48,17 +46,13 @@ class FantasyFootball
             return (doc/"error").inner_html
         else
             (doc/"injury").each do |injury|
-                curr = {
+                results << {
                     # Since the season hasn't started and I can't get an
                     # injury report, I'm not sure what the data format for
                     # this is. Hopefully I can find a sample somewhere
                 }
-                
-                results << curr
             end
         end
-        
-        return results
     end
     
     def getAllPlayers
@@ -66,43 +60,33 @@ class FantasyFootball
         doc = parseXML("ffnPlayersXML.php", "")
         
         (doc/"player").each do |p|
-            player = {
+            players << {
                 "name"     => p['name'],
                 "position" => p['position'],
                 "team"     => p['team'],
                 "playerID" => p['playerid']
             }
-            
-            players << player
         end
-        
-        return players
     end
     
     def getPlayerDetails(playerId)
         results = Array.new
         doc = parseXML("ffnPlayerDetailsXML.php", "&playerId=" + playerId)
         
-        playerDetails = {
+        results << {
             "firstName" => (doc/"firstname").inner_html,
             "lastName"  => (doc/"lastname").inner_html,
             "team"      => (doc/"team").inner_html,
             "position"  => (doc/"position").inner_html    
         }
         
-        results << playerDetails
-        
         (doc/"article").each do |article|
-            curr = { 
+            results << { 
                 "title"     => (article/"title").inner_html,
                 "source"    => (article/"source").inner_html,
                 "published" => (article/"published").inner_html
             }
-            
-            results << curr
         end
-        
-        return results
     end
     
     def getDraftRankings(position, limit, sos)
@@ -111,18 +95,14 @@ class FantasyFootball
        doc = parseXML("ffnRankingsXML.php", params)
 
        (doc/"player").each do |player|
-           curr = {
+           results << {
                "name"         => player.attributes['name'],
                "byeweek"      => player.attributes['byeweek'],
                "positionrank" => player.attributes['positionrank'],
                "overallrank"  => player.attributes['overallrank'],
                "team"         => player.attributes['team'],
                "playerid"     => player.attributes['playerid']
-           }
-           
-           results << curr
+           } 
        end
-       
-       return results
     end
 end
